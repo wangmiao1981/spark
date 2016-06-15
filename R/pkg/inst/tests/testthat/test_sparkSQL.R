@@ -1503,14 +1503,6 @@ test_that("join() and merge() on a DataFrame", {
   unlink(jsonPath3)
 })
 
-test_that("toJSON() returns an RDD of the correct values", {
-  df <- read.json(jsonPath)
-  testRDD <- toJSON(df)
-  expect_is(testRDD, "RDD")
-  expect_equal(getSerializedMode(testRDD), "string")
-  expect_equal(collect(testRDD)[[1]], mockLines[1])
-})
-
 test_that("showDF()", {
   df <- read.json(jsonPath)
   expected <- paste("+----+-------+\n",

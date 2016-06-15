@@ -622,32 +622,6 @@ setMethod("repartition",
             dataFrame(sdf)
           })
 
-#' toJSON
-#'
-#' Convert the rows of a SparkDataFrame into JSON objects and return an RDD where
-#' each element contains a JSON string.
-#'
-#' @param x A SparkDataFrame
-#' @return A StringRRDD of JSON objects
-#' @family SparkDataFrame functions
-#' @rdname tojson
-#' @noRd
-#' @examples
-#'\dontrun{
-#' sc <- sparkR.init()
-#' sqlContext <- sparkRSQL.init(sc)
-#' path <- "path/to/file.json"
-#' df <- read.json(path)
-#' newRDD <- toJSON(df)
-#'}
-setMethod("toJSON",
-          signature(x = "SparkDataFrame"),
-          function(x) {
-            rdd <- callJMethod(x@sdf, "toJSON")
-            jrdd <- callJMethod(rdd, "toJavaRDD")
-            RDD(jrdd, serializedMode = "string")
-          })
-
 #' write.json
 #'
 #' Save the contents of a SparkDataFrame as a JSON file (one object per line). Files written out
@@ -1064,33 +1038,6 @@ setMethod("first",
             take(x, 1)
           })
 
-#' toRDD
-#'
-#' Converts a SparkDataFrame to an RDD while preserving column names.
-#'
-#' @param x A SparkDataFrame
-#'
-#' @noRd
-#' @examples
-#'\dontrun{
-#' sc <- sparkR.init()
-#' sqlContext <- sparkRSQL.init(sc)
-#' path <- "path/to/file.json"
-#' df <- read.json(path)
-#' rdd <- toRDD(df)
-#'}
-setMethod("toRDD",
-          signature(x = "SparkDataFrame"),
-          function(x) {
-            jrdd <- callJStatic("org.apache.spark.sql.api.r.SQLUtils", "dfToRowRDD", x@sdf)
-            colNames <- callJMethod(x@sdf, "columns")
-            rdd <- RDD(jrdd, serializedMode = "row")
-            lapply(rdd, function(row) {
-              names(row) <- colNames
-              row
-            })
-          })
-
 #' GroupBy
 #'
 #' Groups the SparkDataFrame using the specified columns, so we can run aggregation on them.
@@ -1266,74 +1213,6 @@ setMethod("dapplyCollect",
             row.names(ldf) <- NULL
             ldf
           })
-
-############################## RDD Map Functions ##################################
-# All of the following functions mirror the existing RDD map functions,           #
-# but allow for use with DataFrames by first converting to an RRDD before calling #
-# the requested map function.                                                     #
-###################################################################################
-
-#' @rdname lapply
-#' @noRd
-setMethod("lapply",
-          signature(X = "SparkDataFrame", FUN = "function"),
-          function(X, FUN) {
-            rdd <- toRDD(X)
-            lapply(rdd, FUN)
-          })
-
-#' @rdname lapply
-#' @noRd
-setMethod("map",
-          signature(X = "SparkDataFrame", FUN = "function"),
-          function(X, FUN) {
-            lapply(X, FUN)
-          })
-
-#' @rdname flatMap
-#' @noRd
-setMethod("flatMap",
-          signature(X = "SparkDataFrame", FUN = "function"),
-          function(X, FUN) {
-            rdd <- toRDD(X)
-            flatMap(rdd, FUN)
-          })
-
-#' @rdname lapplyPartition
-#' @noRd
-setMethod("lapplyPartition",
-          signature(X = "SparkDataFrame", FUN = "function"),
-          function(X, FUN) {
-            rdd <- toRDD(X)
-            lapplyPartition(rdd, FUN)
-          })
-
-#' @rdname lapplyPartition
-#' @noRd
-setMethod("mapPartitions",
-          signature(X = "SparkDataFrame", FUN = "function"),
-          function(X, FUN) {
-            lapplyPartition(X, FUN)
-          })
-
-#' @rdname foreach
-#' @noRd
-setMethod("foreach",
-          signature(x = "SparkDataFrame", func = "function"),
-          function(x, func) {
-            rdd <- toRDD(x)
-            foreach(rdd, func)
-          })
-
-#' @rdname foreach
-#' @noRd
-setMethod("foreachPartition",
-          signature(x = "SparkDataFrame", func = "function"),
-          function(x, func) {
-            rdd <- toRDD(x)
-            foreachPartition(rdd, func)
-          })
-
 
 ############################## SELECT ##################################
 
