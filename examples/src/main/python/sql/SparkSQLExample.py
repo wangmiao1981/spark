@@ -21,6 +21,10 @@ from __future__ import print_function
 from pyspark.sql import SparkSession
 # $example off:init_session$
 
+# $example on:create_df$
+from pyspark.sql.functions import col
+# $example off:create_df$
+
 # $example on:schema_inferring$
 from pyspark.sql import Row
 # $example off:schema_inferring$
@@ -71,7 +75,7 @@ def runBasicDataFrameExample(spark):
     # +-------+
 
     # Select everybody, but increment the age by 1
-    df.select(df['name'], df['age'] + 1).show()
+    df.select(col('name'), col('age') + 1).show()
     # +-------+---------+
     # |   name|(age + 1)|
     # +-------+---------+
